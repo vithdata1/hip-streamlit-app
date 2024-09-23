@@ -1,13 +1,16 @@
-# app.py
-
 import streamlit as st
 import torch
-from torchvision import transforms
+from torchvision import models, transforms
 from PIL import Image
 
-# โหลดโมเดล (ResNet ในตัวอย่างนี้)
-model = torch.load("best_model.pth", map_location=torch.device('cpu'))
-model.eval()
+# สร้างโมเดล ResNet50 และกำหนดชั้น fully connected ตามที่เคยใช้
+model = models.resnet50(pretrained=False)  # สร้างโมเดลเปล่า
+num_ftrs = model.fc.in_features
+model.fc = torch.nn.Linear(num_ftrs, 2)  # ปรับชั้น fully connected สำหรับ 2 classes (หากจำเป็นต้องปรับตาม class ที่ใช้จริง)
+
+# โหลด state_dict ของโมเดลที่บันทึกไว้
+model.load_state_dict(torch.load("best_model.pth", map_location=torch.device('cpu')))
+model.eval()  # ตั้งโมเดลในโหมดประเมินผล (evaluation mode)
 
 # ฟังก์ชันสำหรับทำนายผลจากภาพ
 def predict(image):
